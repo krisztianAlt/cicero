@@ -86,14 +86,7 @@ public class Pile extends Pane {
 
     public enum PileType {
         STACK,
-        WORDCARDPLACE1,
-        WORDCARDPLACE2,
-        WORDCARDPLACE3,
-        WORDCARDPLACE4,
-        WORDCARDPLACE5,
-        WORDCARDPLACE6,
-        WORDCARDPLACE7,
-        WORDCARDPLACE8
+        WORDCARDPLACE
     }
 
     @Override

@@ -25,14 +25,8 @@ public class Game extends Pane {
     private List<WordCard> deck = new ArrayList<>();
 
     private Pile stackPile;
-    private Pile wordPile1;
-    private Pile wordPile2;
-    private Pile wordPile3;
-    private Pile wordPile4;
-    private Pile wordPile5;
-    private Pile wordPile6;
-    private Pile wordPile7;
-    private Pile wordPile8;
+
+    private List<Pile> wordPiles = FXCollections.observableArrayList();
 
     private Pile discardPile;
     // private List<Pile> foundationPiles = FXCollections.observableArrayList();
@@ -43,14 +37,6 @@ public class Game extends Pane {
 
     private static double STACK_GAP = 1;
     private static double WORD_CARD_PLACE_GAP = 1;
-
-    public int getDifficultyLevel() {
-        return difficultyLevel;
-    }
-
-    public void setDifficultyLevel(int difficultyLevel) {
-        this.difficultyLevel = difficultyLevel;
-    }
 
     /*private EventHandler<MouseEvent> onMouseClickedHandler = e -> {
         WordCard wordCard = (WordCard) e.getSource();
@@ -189,13 +175,20 @@ public class Game extends Pane {
         }
     }
 
-    public Game() {
-        deck = WordCard.createNewDeck();
-        Collections.shuffle(deck);
+    public Game(int difficultyLevel) {
+        this.difficultyLevel = difficultyLevel;
 
-        for (int index = deck.size() -1; index >= 8; index--){
-            deck.remove(index);
+        if (difficultyLevel == 1){
+            WordCard.WIDTH = DifficultyLevels.STUDENT.getCardWidth();
+            WordCard.HEIGHT = DifficultyLevels.STUDENT.getCardHeight();
+            deck = WordCard.createNewDeck(DifficultyLevels.STUDENT.getWordNumber());
+        } else if(difficultyLevel == 2){
+            WordCard.WIDTH = DifficultyLevels.MASTER.getCardWidth();
+            WordCard.HEIGHT = DifficultyLevels.MASTER.getCardHeight();
+            deck = WordCard.createNewDeck(DifficultyLevels.MASTER.getWordNumber());
         }
+
+        Collections.shuffle(deck);
 
         addEventListeners(deck);
         initPiles();
@@ -312,125 +305,80 @@ public class Game extends Pane {
 
 
     private void initPiles() {
+        int firstColumnStartPos = 60;
+        int firstRowStartPos = 30;
 
-        int firstColumn = 60;
-        int secondColumn = 500;
-        int thirdColumn = 950;
+        double nextColumnStartPos;
+        double nextRowStartPos;
 
-        int firstRow = 30;
-        int secondRow = 250;
-        int thirdRow = 470;
+        int numberOfColumns = 0;
+        int numberOfRows = 0;
+        int numberOfWordPiles = 1;
+        double colGap = 0;
+        double rowGap = 0;
 
-        stackPile = new Pile(STACK, "Stack", STACK_GAP);
-        stackPile.setBlurredBackground(true);
-        stackPile.setLayoutX(secondColumn);
-        stackPile.setLayoutY(secondRow);
-        getChildren().add(stackPile);
+        int stackPileColumn = 0;
+        int stackPileRow = 0;
 
-        wordPile1 = new Pile(Pile.PileType.WORDCARDPLACE1, "Word place 1", WORD_CARD_PLACE_GAP);
-        wordPile1.setBlurredBackground(false);
-        wordPile1.setLayoutX(firstColumn);
-        wordPile1.setLayoutY(firstRow);
-        getChildren().add(wordPile1);
-
-        wordPile2 = new Pile(WORDCARDPLACE2, "Word place 2", WORD_CARD_PLACE_GAP);
-        wordPile2.setBlurredBackground(false);
-        wordPile2.setLayoutX(secondColumn);
-        wordPile2.setLayoutY(firstRow);
-        getChildren().add(wordPile2);
-
-        wordPile3 = new Pile(WORDCARDPLACE3, "Word place 3", WORD_CARD_PLACE_GAP);
-        wordPile3.setBlurredBackground(false);
-        wordPile3.setLayoutX(thirdColumn);
-        wordPile3.setLayoutY(firstRow);
-        getChildren().add(wordPile3);
-
-        wordPile4 = new Pile(WORDCARDPLACE4, "Word place 4", WORD_CARD_PLACE_GAP);
-        wordPile4.setBlurredBackground(false);
-        wordPile4.setLayoutX(firstColumn);
-        wordPile4.setLayoutY(secondRow);
-        getChildren().add(wordPile4);
-
-        wordPile5 = new Pile(WORDCARDPLACE5, "Word place 5", WORD_CARD_PLACE_GAP);
-        wordPile5.setBlurredBackground(false);
-        wordPile5.setLayoutX(thirdColumn);
-        wordPile5.setLayoutY(secondRow);
-        getChildren().add(wordPile5);
-
-        wordPile6 = new Pile(WORDCARDPLACE6, "Word place 6", WORD_CARD_PLACE_GAP);
-        wordPile6.setBlurredBackground(false);
-        wordPile6.setLayoutX(firstColumn);
-        wordPile6.setLayoutY(thirdRow);
-        getChildren().add(wordPile6);
-
-        wordPile7 = new Pile(WORDCARDPLACE7, "Word place 7", WORD_CARD_PLACE_GAP);
-        wordPile7.setBlurredBackground(false);
-        wordPile7.setLayoutX(secondColumn);
-        wordPile7.setLayoutY(thirdRow);
-        getChildren().add(wordPile7);
-
-        wordPile8 = new Pile(WORDCARDPLACE8, "Word place 8", WORD_CARD_PLACE_GAP);
-        wordPile8.setBlurredBackground(false);
-        wordPile8.setLayoutX(thirdColumn);
-        wordPile8.setLayoutY(thirdRow);
-        getChildren().add(wordPile8);
-
-        /*discardPile = new Pile(Pile.PileType.DISCARD, "Discard", STOCK_GAP);
-        discardPile.setBlurredBackground();
-        discardPile.setLayoutX(285);
-        discardPile.setLayoutY(50);
-        getChildren().add(discardPile);
-
-        for (int i = 0; i < 4; i++) {
-            Pile foundationPile = new Pile(Pile.PileType.FOUNDATION, "Foundation " + i, FOUNDATION_GAP);
-            foundationPile.setBlurredBackground();
-            foundationPile.setLayoutX(610 + i * 180);
-            foundationPile.setLayoutY(50);
-            foundationPiles.add(foundationPile);
-            getChildren().add(foundationPile);
+        if (difficultyLevel == 1){
+            numberOfColumns = DifficultyLevels.STUDENT.getNumberOfColumns();
+            numberOfRows = DifficultyLevels.STUDENT.getNumberOfRows();
+            // numberOfWordPiles = DifficultyLevels.STUDENT.getWordNumber();
+            colGap = DifficultyLevels.STUDENT.getColumnGap();
+            rowGap = DifficultyLevels.STUDENT.getRowGap();
+            stackPileColumn = 2;
+            stackPileRow = 2;
+        } else if(difficultyLevel == 2){
+            numberOfColumns = DifficultyLevels.MASTER.getNumberOfColumns();
+            numberOfRows = DifficultyLevels.MASTER.getNumberOfRows();
+            // numberOfWordPiles = DifficultyLevels.MASTER.getWordNumber();
+            colGap = DifficultyLevels.MASTER.getColumnGap();
+            rowGap = DifficultyLevels.MASTER.getRowGap();
+            stackPileColumn = 3;
+            stackPileRow = 3;
         }
-        for (int i = 0; i < 7; i++) {
-            Pile tableauPile = new Pile(TABLEAU, "Tableau " + i, TABLEAU_GAP);
-            tableauPile.setBlurredBackground();
-            tableauPile.setLayoutX(95 + i * 180);
-            tableauPile.setLayoutY(325);
-            tableauPiles.add(tableauPile);
-            getChildren().add(tableauPile);
-        }*/
+
+        nextRowStartPos = firstRowStartPos;
+
+        for (int rowIndex = 1; rowIndex <= numberOfRows; rowIndex++){
+            nextColumnStartPos = firstColumnStartPos;
+
+            for (int colIndex = 1; colIndex <= numberOfColumns; colIndex++){
+
+                if(stackPileColumn == colIndex && stackPileRow == rowIndex) {
+                    // generate stackPile:
+                    stackPile = new Pile(STACK, "Stack", STACK_GAP);
+                    stackPile.setBlurredBackground(true);
+                    stackPile.setLayoutX(nextColumnStartPos);
+                    stackPile.setLayoutY(nextRowStartPos);
+                    getChildren().add(stackPile);
+                } else {
+                    // generate wordPile:
+                    Pile wordPile = new Pile(WORDCARDPLACE, "wordPile" + numberOfWordPiles, WORD_CARD_PLACE_GAP);
+                    wordPile.setBlurredBackground(false);
+                    wordPile.setLayoutX(nextColumnStartPos);
+                    wordPile.setLayoutY(nextRowStartPos);
+                    wordPiles.add(wordPile);
+                    getChildren().add(wordPile);
+                    numberOfWordPiles++;
+                }
+
+                nextColumnStartPos = nextColumnStartPos + colGap;
+
+            }
+
+            nextRowStartPos = nextRowStartPos + rowGap;
+        }
+
     }
 
     public void dealWordCards() {
+        int wordIndex = 0;
 
-        wordPile1.addCard(deck.get(0));
-        wordPile2.addCard(deck.get(1));
-        wordPile3.addCard(deck.get(2));
-        wordPile4.addCard(deck.get(3));
-        wordPile5.addCard(deck.get(4));
-        wordPile6.addCard(deck.get(5));
-        wordPile7.addCard(deck.get(6));
-        wordPile8.addCard(deck.get(7));
-
-        /*Iterator<WordCard> deckIterator = deck.iterator();
-        //TODO
-
-        int cardNumber = 0;
-        int columnIndex = 0;
-        int rowIndex = 0;
-
-        for (WordCard wordCard : deck) {
-            if (cardNumber < 28) {
-                tableauPiles.get(columnIndex).addCard(wordCard);
-                columnIndex++;
-                if (columnIndex == 7) {
-                    rowIndex = rowIndex + 1;
-                    columnIndex = rowIndex;
-                }
-
-            } else {
-                stackPile.addCard(wordCard);
-            }
-            cardNumber++;
-        }*/
+        for (Pile wordPile : wordPiles){
+            wordPile.addCard(deck.get(wordIndex));
+            wordIndex++;
+        }
 
     }
 
@@ -443,25 +391,12 @@ public class Game extends Pane {
     public void restart(boolean withShuffle) {
         System.out.println("RESTARTING GAME");
 
-
-        /*for (Pile tableauPile : tableauPiles){
-            tableauPile.clear();
-        }
-
-        for (Pile tableauPile : foundationPiles){
-            tableauPile.clear();
-        }*/
-
         stackPile.clear();
 
-        wordPile1.clear();
-        wordPile2.clear();
-        wordPile3.clear();
-        wordPile4.clear();
-        wordPile5.clear();
-        wordPile6.clear();
-        wordPile7.clear();
-        wordPile8.clear();
+        for (Pile wordPile : wordPiles){
+            wordPile.clear();
+        }
+
 
         if (withShuffle) {
             Collections.shuffle(deck);

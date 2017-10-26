@@ -6,6 +6,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class WordCard extends ImageView {
@@ -15,8 +16,8 @@ public class WordCard extends ImageView {
     private Pile containingPile;
     private DropShadow dropShadow;
 
-    public static final int WIDTH = 263; // original: 263 pixels
-    public static final int HEIGHT = 206; // original: 206 pixels
+    public static double WIDTH; // original: 263 pixels
+    public static double HEIGHT; // original: 206 pixels
 
     public WordCard(int fileNumber) {
         this.fileNumber = fileNumber;
@@ -49,18 +50,26 @@ public class WordCard extends ImageView {
     }
 
 
-    public static List<WordCard> createNewDeck() {
-        List<WordCard> result = new ArrayList<>();
+    public static List<WordCard> createNewDeck(int wordNumber) {
+        List<WordCard> allExistingWordCard = new ArrayList<>();
         for (int fileNumber = 1; fileNumber < 41; fileNumber++) {
-            result.add(new WordCard(fileNumber));
+            allExistingWordCard.add(new WordCard(fileNumber));
         }
+
+        Collections.shuffle(allExistingWordCard);
+
+        List<WordCard> result = new ArrayList<>();
+        for (int index = 0; index < wordNumber; index++) {
+            result.add(allExistingWordCard.get(index));
+        }
+
         return result;
     }
 
     public Image loadCardImage(int fileNumber) {
         String wordCardName = "word_" + Integer.toString(fileNumber);
         String imageFileName = "word_images/" + wordCardName + ".png";
-        return new Image(imageFileName, 263, 206, true, true);
+        return new Image(imageFileName, WIDTH, HEIGHT, true, true);
     }
 
     @Override
