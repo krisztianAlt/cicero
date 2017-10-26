@@ -4,7 +4,6 @@ import javafx.collections.FXCollections;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 
 import java.util.*;
@@ -21,48 +20,21 @@ import static com.cicero.Pile.PileType.*;
 public class Game extends Pane {
 
     private int difficultyLevel;
+    private int actualGameLevel;
+    private int lastGameLevel;
 
     private List<WordCard> deck = new ArrayList<>();
+    private List<WordCard> previousStack = new ArrayList<>();
+    private List<WordCard> actualStack = new ArrayList<>();
 
     private Pile stackPile;
-
     private List<Pile> wordPiles = FXCollections.observableArrayList();
-
-    private Pile discardPile;
-    // private List<Pile> foundationPiles = FXCollections.observableArrayList();
-    // private List<Pile> tableauPiles = FXCollections.observableArrayList();
 
     private double dragStartX, dragStartY;
     private List<WordCard> draggedWordCards = FXCollections.observableArrayList();
 
     private static double STACK_GAP = 1;
     private static double WORD_CARD_PLACE_GAP = 1;
-
-    /*private EventHandler<MouseEvent> onMouseClickedHandler = e -> {
-        WordCard wordCard = (WordCard) e.getSource();
-        Pile originPile = wordCard.getContainingPile();
-
-        int clickCount = e.getClickCount();
-
-        if (clickCount == 1 && originPile.getPileType().equals(STACK) &&
-                wordCard.equals(stackPile.getTopCard())) {
-            wordCard.moveToPile(discardPile);
-            wordCard.setMouseTransparent(false);
-            System.out.println("Placed " + wordCard + " to the waste.");
-
-
-        }
-
-        *//*if (clickCount == 1 && originPile.getPileType().equals(STACK) &&
-                wordCard.equals(stackPile.getTopCard())) {
-            wordCard.moveToPile(discardPile);
-            wordCard.setMouseTransparent(false);
-            System.out.println("Placed " + wordCard + " to the waste.");
-
-
-        }*//*
-    };*/
-
 
     private EventHandler<MouseEvent> onMousePressedHandler = e -> {
         dragStartX = e.getSceneX();
@@ -75,8 +47,7 @@ public class Game extends Pane {
         Pile activePile = wordCard.getContainingPile();
         if (activePile.getPileType().equals(STACK))
             return;
-        /*if (activePile.getPileType().equals(DISCARD) && wordCard != activePile.getTopCard())
-            return;*/
+
         double offsetX = e.getSceneX() - dragStartX;
         double offsetY = e.getSceneY() - dragStartY;
 
@@ -84,17 +55,6 @@ public class Game extends Pane {
         draggedWordCards.add(wordCard);
         dragCard(wordCard, offsetX, offsetY);
 
-        // If tableau pile and not last dragged, drag all below wordCard as well
-        /*if (activePile.getPileType().equals(TABLEAU) && (wordCard != activePile.getTopCard())) {
-            List<WordCard> tableauWordCards = activePile.getWordCards();
-            int indexOfDraggedCard = tableauWordCards.indexOf(wordCard);
-            ListIterator<WordCard> listIterator = tableauWordCards.listIterator(indexOfDraggedCard+1);
-            while (listIterator.hasNext()) {
-                WordCard draggedWordCard = listIterator.next();
-                draggedWordCards.add(draggedWordCard);
-                dragCard(draggedWordCard, offsetX, offsetY);
-            }
-        }*/
     };
 
     private void dragCard(WordCard draggedWordCard, double offsetX, double offsetY) {
@@ -110,21 +70,15 @@ public class Game extends Pane {
         if (draggedWordCards.isEmpty())
             return;
         WordCard wordCard = (WordCard) e.getSource();
-        Pile originalPile = wordCard.getContainingPile();
 
         List<Pile> targetPiles = new ArrayList<>();
         targetPiles.add(stackPile);
-        /*List<Pile> targetPiles = FXCollections.observableArrayList(tableauPiles);
-        targetPiles.addAll(foundationPiles);*/
+
         Pile pile = getValidIntersectingPile(wordCard, targetPiles);
 
         if (pile != null) {
 
-            // save originPile before action
-            Pile originPile = wordCard.getContainingPile();
-
             List<WordCard> wordCardList = new LinkedList<>();
-            // System.out.println(draggedWordCards);
             wordCardList.addAll(draggedWordCards);
 
             // do action
@@ -137,55 +91,25 @@ public class Game extends Pane {
         }
     };
 
-
-    public boolean isActualLevelSucceeded(){
-        return true;
-    }
-
-    public boolean isGameWon() {
-
-        boolean gameWon = false;
-        int counter = 0;
-
-        /*for (Pile pile : foundationPiles) {
-            if (pile.numOfCards() == 13) {
-                counter++;
-            }
-            if (counter == 3 && pile.numOfCards() == 12) {
-                gameWon = true;
-            }
-        }*/
-
-        return gameWon;
-    }
-
-    public void checkProceedToNextLevel() {
-        if (isActualLevelSucceeded()) {
-            System.out.println("ENTERED inside if isActualLevelSucceeded");
-            //TODO: remove all event listeners!
-            showLevelSucceeded();
-        }
-    }
-
-    public void checkGameWon() {
-        if (isGameWon()) {
-            System.out.println("ENTERED inside if isGameWon");
-            //TODO: remove all event listeners!
-            showPrize();
-        }
-    }
-
     public Game(int difficultyLevel) {
         this.difficultyLevel = difficultyLevel;
+        this.actualGameLevel = 1;
 
         if (difficultyLevel == 1){
             WordCard.WIDTH = DifficultyLevels.STUDENT.getCardWidth();
             WordCard.HEIGHT = DifficultyLevels.STUDENT.getCardHeight();
             deck = WordCard.createNewDeck(DifficultyLevels.STUDENT.getWordNumber());
-        } else if(difficultyLevel == 2){
+            this.lastGameLevel = DifficultyLevels.STUDENT.getWordNumber() - 1;
+        } else if (difficultyLevel == 2){
             WordCard.WIDTH = DifficultyLevels.MASTER.getCardWidth();
             WordCard.HEIGHT = DifficultyLevels.MASTER.getCardHeight();
             deck = WordCard.createNewDeck(DifficultyLevels.MASTER.getWordNumber());
+            this.lastGameLevel = DifficultyLevels.MASTER.getWordNumber() - 1;
+        } else if (difficultyLevel == 3){
+            WordCard.WIDTH = DifficultyLevels.CAESAR.getCardWidth();
+            WordCard.HEIGHT = DifficultyLevels.CAESAR.getCardHeight();
+            deck = WordCard.createNewDeck(DifficultyLevels.CAESAR.getWordNumber());
+            this.lastGameLevel = DifficultyLevels.CAESAR.getWordNumber() - 1;
         }
 
         Collections.shuffle(deck);
@@ -200,63 +124,15 @@ public class Game extends Pane {
             wordCard.setOnMousePressed(onMousePressedHandler);
             wordCard.setOnMouseDragged(onMouseDraggedHandler);
             wordCard.setOnMouseReleased(onMouseReleasedHandler);
-            // wordCard.setOnMouseClicked(onMouseClickedHandler);
             this.getChildren().add(wordCard);
         }
     }
-
-
-    public boolean isMoveValid(WordCard wordCard, Pile destPile) {
-
-        WordCard topWordCard = destPile.getTopCard();
-        boolean validMove = true;
-
-
-
-        /*if (topWordCard != null) {
-            int rankDifference = wordCard.getRank().compareTo(topWordCard.getRank());
-            switch (destPile.getPileType()) {
-
-                case TABLEAU:
-                    if (WordCard.isOppositeColor(wordCard, topWordCard) && (rankDifference == -1)) {
-                        validMove = true;
-                    }
-                    break;
-
-                case FOUNDATION:
-                    if (WordCard.isSameSuit(wordCard, topWordCard) && (rankDifference == 1)) {
-                        validMove = true;
-                    }
-                    break;
-            }
-        } else {
-
-            switch (destPile.getPileType()) {
-
-                case TABLEAU:
-                    if (wordCard.getRank() == KING) {
-                        validMove = true;
-                    }
-                    break;
-
-                case FOUNDATION:
-                    if (wordCard.getRank() == ACE) {
-                        validMove = true;
-                    }
-                    break;
-            }
-        }*/
-
-        return validMove;
-    }
-
 
     private Pile getValidIntersectingPile(WordCard wordCard, List<Pile> piles) {
         Pile result = null;
         for (Pile pile : piles) {
             if (!pile.equals(wordCard.getContainingPile()) &&
-                    isOverPile(wordCard, pile) &&
-                    isMoveValid(wordCard, pile))
+                    isOverPile(wordCard, pile))
                 result = pile;
         }
         return result;
@@ -270,39 +146,94 @@ public class Game extends Pane {
     }
 
     private void handleValidMove(WordCard wordCard, Pile destPile) {
-        String msg = null;
-        if (destPile.isEmpty()) {
-            /*if (destPile.getPileType().equals(Pile.PileType.FOUNDATION))
-                msg = String.format("Placed %s to the foundation.", wordCard);
-
-            if (destPile.getPileType().equals(TABLEAU))
-                msg = String.format("Placed %s to a new pile.", wordCard);*/
-
-        } else {
-            msg = String.format("Placed %s to %s.", wordCard, destPile.getTopCard());
-        }
-        // System.out.println(msg);
         MouseUtil.slideToDest(draggedWordCards, destPile);
         draggedWordCards.clear();
     }
 
+    public List<WordCard> getActualStack() {
+        return actualStack;
+    }
+
+    public void checkWordCardOrder(){
+        int actualStackSize = actualStack.size();
+        int previousStackSize = previousStack.size();
+
+        if (actualGameLevel == 1 && actualStackSize == 2){
+            proceedToNextLevel();
+        } else if (actualGameLevel > 1 && actualStackSize > previousStackSize){
+            proceedToNextLevel();
+        } else if (actualGameLevel > 1 && actualStackSize <= previousStackSize) {
+            List<WordCard> portionStack = new ArrayList<>();
+
+            for (int index = 0; index < actualStackSize; index++){
+                portionStack.add(previousStack.get(index));
+            }
+
+            if (portionStack.equals(actualStack)){
+                System.out.println("Good order.");
+            } else {
+                failure();
+            }
+        }
+    }
+
+    private void proceedToNextLevel(){
+        actualGameLevel++;
+        if (actualGameLevel > lastGameLevel){
+            showWinning();
+        } else {
+            previousStack.clear();
+
+            for (WordCard wordCard : actualStack){
+                previousStack.add(wordCard);
+            }
+
+            actualStack.clear();
+
+            showLevelSucceeded();
+
+            for (Pile wordPile : wordPiles){
+                wordPile.clear();
+            }
+
+            stackPile.clear();
+
+            Collections.shuffle(deck);
+            dealWordCards();
+        }
+    }
+
+    private void failure(){
+        showLosing();
+        restart(false);
+    }
+
     private void showLevelSucceeded() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Info");
-        alert.setHeaderText("You proceed to the next level!");
-        String message ="Just relax... :)";
-        alert.setContentText(message);
-        alert.show();
-    }
-    private void showPrize() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Success!!!");
-        alert.setHeaderText("YOU WON!");
-        String message ="Congratulations!!";
+        alert.setTitle("The gods are hopeful...");
+        alert.setHeaderText("You proceed to the " + actualGameLevel + ". level!");
+        String message = "Just keep breathing and relax.";
         alert.setContentText(message);
         alert.show();
     }
 
+    private void showWinning() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("The gods are happy...");
+        alert.setHeaderText("YOU WON!");
+        String message ="Congratulations.\nYou are blissful.";
+        alert.setContentText(message);
+        alert.show();
+    }
+
+    private void showLosing() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("The gods are sad...");
+        alert.setHeaderText("You have lost.\nThe order was not correct.");
+        String message ="Now I restart this game from the beginning,\nbut you can start a new game if you want.";
+        alert.setContentText(message);
+        alert.show();
+    }
 
     private void initPiles() {
         int firstColumnStartPos = 60;
@@ -323,19 +254,24 @@ public class Game extends Pane {
         if (difficultyLevel == 1){
             numberOfColumns = DifficultyLevels.STUDENT.getNumberOfColumns();
             numberOfRows = DifficultyLevels.STUDENT.getNumberOfRows();
-            // numberOfWordPiles = DifficultyLevels.STUDENT.getWordNumber();
             colGap = DifficultyLevels.STUDENT.getColumnGap();
             rowGap = DifficultyLevels.STUDENT.getRowGap();
             stackPileColumn = 2;
             stackPileRow = 2;
-        } else if(difficultyLevel == 2){
+        } else if (difficultyLevel == 2){
             numberOfColumns = DifficultyLevels.MASTER.getNumberOfColumns();
             numberOfRows = DifficultyLevels.MASTER.getNumberOfRows();
-            // numberOfWordPiles = DifficultyLevels.MASTER.getWordNumber();
             colGap = DifficultyLevels.MASTER.getColumnGap();
             rowGap = DifficultyLevels.MASTER.getRowGap();
             stackPileColumn = 3;
             stackPileRow = 3;
+        } else if (difficultyLevel == 3){
+            numberOfColumns = DifficultyLevels.CAESAR.getNumberOfColumns();
+            numberOfRows = DifficultyLevels.CAESAR.getNumberOfRows();
+            colGap = DifficultyLevels.CAESAR.getColumnGap();
+            rowGap = DifficultyLevels.CAESAR.getRowGap();
+            stackPileColumn = 4;
+            stackPileRow = 4;
         }
 
         nextRowStartPos = firstRowStartPos;
@@ -390,19 +326,21 @@ public class Game extends Pane {
 
     public void restart(boolean withShuffle) {
         System.out.println("RESTARTING GAME");
-
         stackPile.clear();
 
         for (Pile wordPile : wordPiles){
             wordPile.clear();
         }
 
-
         if (withShuffle) {
             Collections.shuffle(deck);
         }
 
         dealWordCards();
+
+        previousStack.clear();
+        actualStack.clear();
+        actualGameLevel = 1;
     }
 
 

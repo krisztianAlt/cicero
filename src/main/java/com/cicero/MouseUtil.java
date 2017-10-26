@@ -61,15 +61,18 @@ public class MouseUtil {
                         currentWordCard.getDropShadow().setRadius(2);
                         currentWordCard.getDropShadow().setOffsetX(0);
                         currentWordCard.getDropShadow().setOffsetY(0);
+
+                        Cicero.game.getActualStack().add(currentWordCard);
+                        Cicero.game.checkWordCardOrder();
                     });
         }
 
-        boolean destTypeIsStack = destPile.getPileType().equals(Pile.PileType.STACK);
+
+        /*boolean destTypeIsStack = destPile.getPileType().equals(Pile.PileType.STACK);
         if (destTypeIsStack) {
-            System.out.println("ENTERED inside MouseUtil");
-            Cicero.game.checkGameWon();
-            Cicero.game.checkProceedToNextLevel();
-        }
+            Cicero.game.checkWordCardOrder();
+        }*/
+
     }
 
     private static void animateCardMovement(

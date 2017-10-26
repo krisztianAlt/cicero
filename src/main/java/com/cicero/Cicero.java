@@ -33,7 +33,7 @@ public class Cicero extends Application {
         Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         ImageView mainTitle = new ImageView();
-        mainTitle.setImage(new Image("/cicero.jpg"));
+        mainTitle.setImage(new Image("/cicero_main_title2.png"));
 
         // Create menu bar
         MenuBar menuBar = new MenuBar();
@@ -63,9 +63,20 @@ public class Cicero extends Application {
             }
         });
 
+        MenuItem difficultyLevel3 = new MenuItem("Caesar");
+        difficultyLevel3.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent t) {
+                game = new Game(3);
+                game.setTableBackground(new Image("/table/marble.jpg"), true);
+                root.setCenter(game);
+            }
+        });
+
         difficultyLevel1.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
         difficultyLevel2.setAccelerator(new KeyCodeCombination(KeyCode.M, KeyCombination.CONTROL_DOWN));
-        newGame.getItems().addAll(difficultyLevel1, new SeparatorMenuItem(), difficultyLevel2);
+        difficultyLevel3.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
+        newGame.getItems().addAll(difficultyLevel1, new SeparatorMenuItem(), difficultyLevel2,
+                new SeparatorMenuItem(), difficultyLevel3);
 
 
         MenuItem restartGame = new MenuItem("Restart");

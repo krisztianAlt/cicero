@@ -16,8 +16,8 @@ public class WordCard extends ImageView {
     private Pile containingPile;
     private DropShadow dropShadow;
 
-    public static double WIDTH; // original: 263 pixels
-    public static double HEIGHT; // original: 206 pixels
+    public static double WIDTH;
+    public static double HEIGHT;
 
     public WordCard(int fileNumber) {
         this.fileNumber = fileNumber;
@@ -52,7 +52,7 @@ public class WordCard extends ImageView {
 
     public static List<WordCard> createNewDeck(int wordNumber) {
         List<WordCard> allExistingWordCard = new ArrayList<>();
-        for (int fileNumber = 1; fileNumber < 41; fileNumber++) {
+        for (int fileNumber = 1; fileNumber < 49; fileNumber++) {
             allExistingWordCard.add(new WordCard(fileNumber));
         }
 

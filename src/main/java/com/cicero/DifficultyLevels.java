@@ -3,11 +3,12 @@ package com.cicero;
 public enum DifficultyLevels {
 
     STUDENT (8, 263, 206, 3, 3, 450, 220),
-    MASTER (24, 263 / 1.75, 206/ 1.75, 5, 5, 450 / 1.8, 220 / 1.7);
+    MASTER (24, 263 / 1.75, 206/ 1.75, 5, 5, 450 / 1.8, 220 / 1.7),
+    CAESAR (48, 263 / 2.5, 206 / 2.5, 7, 7, 450 / 2.5, 220 / 2.4);
 
     private int wordNumber;
-    private double cardWidth;
-    private double cardHeight;
+    private double cardWidth; // original image file's width: 263 pixels
+    private double cardHeight; // original image file's height: 206 pixels
     private int numberOfColumns;
     private int numberOfRows;
     private double columnGap;
